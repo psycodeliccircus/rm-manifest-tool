@@ -1,0 +1,60 @@
+{
+  "name": "rm-manifest-tool",
+  "version": "1.0.0",
+  "description": "Ferramenta de gerenciamento de manifests Steam",
+  "author": "Seu Nome",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "electron-updater": "^6.6.2"
+  },
+  "build": {
+    "appId": "com.renildomarcio.rm-manifest",
+    "productName": "RM Manifest Generator",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "renderer.js",
+      "style.css",
+      "splash.html",
+      "splash.css",
+      "manifests/**/*",
+      "icons/**/*"
+    ],
+    "extraResources": [
+      "manifests"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "psycodeliccircus",
+        "repo": "rm-manifest-tool"
+      }
+    ],
+    "win": {
+      "icon": "icons/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "icon": "icons/icon.png",
+      "target": [
+        "AppImage"
+      ]
+    }
+  }
+}

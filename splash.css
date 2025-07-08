@@ -1,0 +1,46 @@
+body {
+  background: #181a24;
+  color: #e2e5ea;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.splash-container {
+  text-align: center;
+}
+.splash-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 20px 0 #2a3b6e30;
+}
+.splash-title {
+  font-size: 1.7em;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.splash-loader {
+  width: 60px;
+  height: 6px;
+  margin: 0 auto 16px;
+  background: linear-gradient(90deg,#2a3b6e 10%,#3d2a62 90%);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  animation: splash-bar-move 1.2s linear infinite;
+}
+@keyframes splash-bar-move {
+  0% { box-shadow: 0 0 0 #2ecc71; }
+  50% { box-shadow: 0 0 18px 4px #2a6c79; }
+  100% { box-shadow: 0 0 0 #2ecc71; }
+}
+.splash-sub {
+  color: #a0a6b3;
+  font-size: 1em;
+  margin-top: 2px;
+}

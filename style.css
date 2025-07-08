@@ -1,0 +1,550 @@
+:root {
+  --primary-color:#2a3b6e;
+  --primary-hover:#3a4c8e;
+  --accent-color:#3d2a62;
+  --accent-hover:#513772;
+  --success-color:#2ecc71;
+  --error-color:#e74c3c;
+  --info-color:#3498db;
+  --background:#12141a;
+  --surface:#1c1f28;
+  --surface-hover:#232731;
+  --border:#2c303a;
+  --text-primary:#e2e5ea;
+  --text-secondary:#a0a6b3;
+  --scrollbar:#2c303a;
+  --scrollbar-hover:#3a3f4d;
+}
+
+* {
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body {
+  background:var(--background);
+  color:var(--text-primary);
+  font-family:'Segoe UI',sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+}
+
+.header {
+  position:fixed;
+  top:0;
+  width:100%;
+  padding:18px 24px;
+  background:rgba(28,31,40,0.95);
+  backdrop-filter:blur(12px);
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand {
+  font-size:20px;
+  font-weight:600;
+}
+
+/* ========= NOVO: login via Steam ========= */
+.nav-auth {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.nav-auth a {
+  color:var(--text-primary);
+  text-decoration:none;
+  padding:6px 12px;
+  border-radius:8px;
+  background:var(--primary-color);
+  transition:background .2s;
+  font-size:14px;
+}
+.nav-auth a:hover {
+  background:var(--primary-hover);
+}
+.nav-auth img {
+  width:32px;
+  height:32px;
+  border-radius:50%;
+}
+.nav-auth span {
+  font-size:14px;
+}
+/* ========================================== */
+
+.main-content {
+  margin:120px 0 40px;
+  width:100%;
+  max-width:550px;
+  padding:0 20px;
+}
+
+.container {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:25px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+}
+
+.input-wrapper {
+  position:relative;
+  margin-bottom:16px;
+}
+
+input,
+select {
+  width:100%;
+  padding:14px 18px;
+  font-size:16px;
+  background:var(--background);
+  color:var(--text-primary);
+  border:1px solid var(--border);
+  border-radius:12px;
+  transition:border-color .2s;
+}
+
+input:focus,
+select:focus {
+  outline:none;
+  border-color:var(--primary-color);
+}
+
+select {
+  appearance:none;
+  background:url("data:image/svg+xml,...") no-repeat right 14px center;
+  padding-right:40px;
+}
+
+.appid-dropdown {
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  max-height:320px;
+  overflow-y:auto;
+  display:none;
+  margin-top:4px;
+  z-index:100;
+}
+.appid-dropdown.show {
+  display:block;
+}
+
+.dropdown-item {
+  display:flex;
+  align-items:center;
+  padding:12px 16px;
+  cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background .2s;
+}
+.dropdown-item:last-child {
+  border-bottom:none;
+}
+.dropdown-item:hover {
+  background:var(--surface-hover);
+}
+
+.game-thumbnail {
+  width:64px;
+  height:36px;
+  border-radius:8px;
+  margin-right:12px;
+  background:var(--border);
+  object-fit:cover;
+  flex-shrink:0;
+}
+
+.game-info {
+  flex:1;
+  min-width:0;
+}
+.game-appid {
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-primary);
+  margin-bottom:2px;
+}
+.game-name {
+  font-size:14px;
+  color:var(--text-secondary);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.dropdown-loading,
+.dropdown-no-results {
+  padding:20px;
+  text-align:center;
+  color:var(--text-secondary);
+}
+
+.branch-selector {
+  display:none;
+  margin-bottom:16px;
+}
+
+.drm-warning {
+  display:none;
+  margin-bottom:16px;
+  padding:14px 18px;
+  border:1px solid rgba(243,156,18,.3);
+  background:rgba(243,156,18,.1);
+  border-radius:12px;
+  font-size:15px;
+  align-items:center;
+  gap:8px;
+}
+
+.file-list-container {
+  display:none;
+  background:var(--background);
+  border:1px solid var(--border);
+  border-radius:12px;
+  max-height:240px;
+  overflow-y:auto;
+  position:relative;
+  margin: 5px 0px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--surface-hover);
+}
+
+.file-list-header {
+  background: linear-gradient(90deg, #232741 60%, #232731 100%);
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  gap: 36px;
+  align-items: center;
+  font-size: 17px;
+  padding: 14px 28px 14px 18px;
+  margin-bottom: 0;
+  border-bottom: 1.5px solid #222533;
+  box-shadow: 0 2px 8px rgba(40,40,60,.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.legend {
+  display: flex;
+  gap: 2.2rem;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(0,0,0,.18);
+}
+
+.legend-color {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,.18);
+  border: 2.5px solid #232741;
+  margin-right: 3px;
+}
+
+.legend-green { background: var(--success-color);}
+.legend-red { background: var(--error-color);}
+
+.legend-text {
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+@media (max-width:480px) {
+  .file-list-header {
+    font-size: 15px;
+    gap: 14px;
+    padding: 10px 8px 10px 8px;
+  }
+  .legend {
+    gap: 1.2rem;
+  }
+}
+
+.legend-item .count-badge {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1px 8px;
+  margin-left: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: inherit;
+  box-shadow: 0 1px 2px rgba(30,30,40,.10);
+}
+
+.file-list {
+  list-style:none;
+  padding:0;
+}
+
+.file-item {
+  display:flex;
+  align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  transition:background .2s;
+}
+.file-item:hover {
+  background:var(--surface-hover);
+}
+
+.file-icon {
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  background:rgba(255,255,255,.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-right:14px;
+  flex-shrink:0;
+}
+.file-icon i {font-size:15px;}
+
+.file-lua .file-icon,
+.file-st  .file-icon {background:rgba(52,152,219,.1); color:#3498db;}
+.file-manifest .file-icon {background:rgba(231,76,60,.1); color:#e74c3c;}
+.file-other .file-icon    {background:rgba(189,195,199,.1); color:#bdc3c7;}
+
+.manifest-id-current  {color:var(--success-color); font-weight:600;}
+.manifest-id-outdated {color:var(--error-color);   font-weight:600;}
+
+.files-status {
+  padding:14px 0;
+  text-align:center;
+  font-size:13px;
+  color:var(--text-secondary);
+}
+
+.button-group {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+button,
+.nav-button {
+  padding:14px 18px;
+  font-size:16px;
+  font-weight:500;
+  background:var(--primary-color);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:background .2s;
+  text-decoration:none;
+}
+button:hover,
+.nav-button:hover {
+  background:var(--primary-hover);
+}
+button:active,
+.nav-button:active {
+  transform:translateY(1px);
+}
+
+.request-button,
+.gamelist-button,
+.tools-button {
+  background:var(--accent-color);
+}
+.request-button:hover,
+.gamelist-button:hover,
+.tools-button:hover {
+  background:var(--accent-hover);
+}
+
+.stats-container {
+  display:flex;
+  justify-content:space-between;
+  margin-top:20px;
+  gap:12px;
+}
+.stats-container > div {
+  flex:1;
+  background:var(--background);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+}
+.stats-container small {
+  display:block;
+  color:var(--text-secondary);
+  font-size:12px;
+}
+.stats-note {
+  text-align:center;
+  color:var(--text-secondary);
+  margin-top:12px;
+}
+
+#status {
+  margin-top:24px;
+  padding:14px 18px;
+  border-radius:12px;
+  font-size:15px;
+  text-align:center;
+  display:none;
+}
+#status.success {
+  display:flex;
+  background:rgba(46,204,113,.1);
+  border:1px solid rgba(46,204,113,.3);
+  color:var(--success-color);
+}
+#status.error {
+  display:flex;
+  background:rgba(231,76,60,.1);
+  border:1px solid rgba(231,76,60,.3);
+  color:var(--error-color);
+}
+#status.info {
+  display:flex;
+  background:rgba(52,152,219,.1);
+  border:1px solid rgba(52,152,219,.3);
+  color:var(--info-color);
+}
+
+@media (max-width:480px) {
+  .header {padding:14px 16px;}
+  .main-content {margin-top:100px;}
+  .container {padding:24px;}
+  input, button, .nav-button, select {padding:12px 16px;}
+}
+
+/* ===== Scrollbar global ===== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 12px;
+  background: var(--surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 10px;
+  border: 2px solid var(--surface); /* Borda de destaque para dar efeito "dentro do container" */
+  transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 10px;
+}
+
+/* ===== Scrollbar específica para .file-list-container ===== */
+.file-list-container::-webkit-scrollbar {
+  width: 12px;
+  background: var(--surface);
+}
+.file-list-container::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+  border: 2px solid var(--surface);
+}
+.file-list-container::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+.file-list-container::-webkit-scrollbar-track {
+  background: var(--surface-hover);
+  border-radius: 10px;
+}
+progress {
+  width: 100%;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--surface-hover);
+  box-shadow: 0 2px 12px 0 rgba(52, 152, 219, 0.11), 0 1px 2px rgba(30,30,40,.09);
+  border: 1.5px solid var(--primary-color);
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 12px 0 8px 0;
+  position: relative;
+}
+
+/* Barra de fundo (webkit) */
+progress::-webkit-progress-bar {
+  background: var(--surface-hover);
+  border-radius: 7px;
+}
+
+/* Barra de progresso (webkit) */
+progress::-webkit-progress-value {
+  background: linear-gradient(90deg, var(--primary-color) 30%, var(--primary-hover) 100%);
+  border-radius: 7px;
+  box-shadow: 0 0 12px 0 rgba(46,204,113,0.21);
+  transition: width 0.3s;
+}
+
+/* Firefox */
+progress::-moz-progress-bar {
+  background: linear-gradient(90deg, var(--primary-color) 30%, var(--primary-hover) 100%);
+  border-radius: 7px;
+  box-shadow: 0 0 12px 0 rgba(46,204,113,0.21);
+  transition: width 0.3s;
+}
+
+/* Para IE/Edge */
+progress::-ms-fill {
+  background: linear-gradient(90deg, var(--primary-color) 30%, var(--primary-hover) 100%);
+  border-radius: 7px;
+  box-shadow: 0 0 12px 0 rgba(46,204,113,0.21);
+  transition: width 0.3s;
+}
+
+progress[value] {
+  color-scheme: dark;
+}
+
+/* Opcional: Glow animado quando está ativo */
+progress:indeterminate::-webkit-progress-bar {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--surface-hover),
+    var(--surface-hover) 10px,
+    #232741 10px,
+    #232741 20px
+  );
+  animation: progress-glow 1.2s linear infinite;
+}
+
+@keyframes progress-glow {
+  0% { box-shadow: 0 0 12px 0 var(--primary-color);}
+  50% { box-shadow: 0 0 28px 3px var(--primary-hover);}
+  100% { box-shadow: 0 0 12px 0 var(--primary-color);}
+}
+#btn-restart {
+  background: var(--accent-color);
+}
+#btn-restart:hover {
+  background: var(--accent-hover);
+}
