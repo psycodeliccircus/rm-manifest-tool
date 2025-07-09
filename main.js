@@ -17,8 +17,8 @@ function ensureManifestsDir() {
 
 function createSplash() {
   splashWindow = new BrowserWindow({
-    width: 350,
-    height: 320,
+    width: 650,
+    height: 620,
     frame: false,
     transparent: false,
     resizable: false,
@@ -34,10 +34,12 @@ function createSplash() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 600,
+    width: 600,
+    height: 569,
+    frame: false,
+    transparent: true,
     resizable: false,
-    show: false,
+    show: true,
     icon: "icons/icon.png",
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -99,9 +101,15 @@ ipcMain.on('restart-app', () => {
   autoUpdater.quitAndInstall();
 });
 
+ipcMain.on('window-minimize', () => mainWindow.minimize());
+ipcMain.on('window-close', () => mainWindow.close());
+
 // ============ Funções principais do app ============
 
-ipcMain.on('open-link', (event, url) => shell.openExternal(url));
+// Abrir links externos no navegador padrão
+ipcMain.on('open-link', (event, url) => {
+  shell.openExternal(url);
+});
 
 ipcMain.on('add-app', async (_event, data) => {
   ensureManifestsDir();

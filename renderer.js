@@ -79,6 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.electronAPI.checkUpdate();
   };
 
+    // Links externos (navegação)
+  document.querySelectorAll('[data-url]').forEach(link => {
+    link.addEventListener('click', evt => {
+      evt.preventDefault();
+      const url = link.getAttribute('data-url');
+      if (window.electronAPI && url) window.electronAPI.openLink(url);
+    });
+  });
+
+  document.getElementById('min-btn').onclick = () => window.electronAPI.minimize && window.electronAPI.minimize();
+  document.getElementById('close-btn').onclick = () => window.electronAPI.close && window.electronAPI.close();
+
   function showChangelog({latestVersion, changelog}) {
     changelogContent.innerHTML = `
       <b>Versão:</b> v${latestVersion}<br><br>

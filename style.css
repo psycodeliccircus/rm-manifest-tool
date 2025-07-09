@@ -77,6 +77,30 @@ body {
 .nav-auth span {
   font-size:14px;
 }
+.nav-auth button {
+  color: var(--text-primary);
+  background: var(--primary-color);
+  border: none;
+  outline: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .2s, color .2s, box-shadow .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+.nav-auth button:hover {
+  background: var(--primary-hover);
+  color: #fff;
+}
+.nav-auth button:active {
+  box-shadow: 0 1px 2px rgba(0,0,0,.18) inset;
+  transform: scale(0.97);
+}
 /* ========================================== */
 
 .main-content {
@@ -547,4 +571,42 @@ progress:indeterminate::-webkit-progress-bar {
 }
 #btn-restart:hover {
   background: var(--accent-hover);
+}
+.window-controls {
+  display: flex;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.window-btn {
+  background: transparent;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  position: relative;
+}
+
+.window-btn:hover {
+  background: rgba(255,255,255,0.10);
+}
+
+.window-btn.min:hover {
+  color: var(--info-color);
+  box-shadow: 0 0 8px rgba(52,152,219,0.2);
+}
+
+.window-btn.close:hover {
+  color: var(--error-color);
+  box-shadow: 0 0 8px rgba(231,76,60,0.25);
+}
+
+.window-btn:active {
+  transform: scale(0.93);
 }
