@@ -25,7 +25,7 @@ body {
   margin-bottom: 14px;
 }
 .splash-loader {
-  width: 60px;
+  width: 120px;
   height: 6px;
   margin: 0 auto 16px;
   background: linear-gradient(90deg,#2a3b6e 10%,#3d2a62 90%);

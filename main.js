@@ -55,7 +55,7 @@ app.whenReady().then(() => {
   setTimeout(() => {
     mainWindow.show();
     if (splashWindow) splashWindow.close();
-  }, 1000);
+  }, 1500);
 
   // Checa update automaticamente ao abrir
   setTimeout(() => {
