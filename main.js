@@ -11,6 +11,13 @@ let mainWindow;
 let splashWindow;
 const manifestsDir = path.join(app.getPath('userData'), 'manifests');
 
+// Função segura para enviar mensagens para o renderer
+function safeSend(channel, ...args) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, ...args);
+  }
+}
+
 function ensureManifestsDir() {
   if (!fs.existsSync(manifestsDir)) fs.mkdirSync(manifestsDir, { recursive: true });
 }
@@ -46,16 +53,17 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
   mainWindow.setMenu(null);
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    if (splashWindow) splashWindow.close();
+  });
 }
 
 app.whenReady().then(() => {
   ensureManifestsDir();
   createSplash();
   createWindow();
-  setTimeout(() => {
-    mainWindow.show();
-    if (splashWindow) splashWindow.close();
-  }, 1500);
 
   // Checa update automaticamente ao abrir
   setTimeout(() => {
@@ -69,24 +77,24 @@ app.on('window-all-closed', () => {
 
 // ============ AutoUpdate EVENTS ============
 autoUpdater.on('checking-for-update', () => {
-  if (mainWindow) mainWindow.webContents.send('status-update', { msg: 'Procurando atualização...', type: 'info' });
+  safeSend('status-update', { msg: 'Procurando atualização...', type: 'info' });
 });
 autoUpdater.on('update-available', info => {
-  if (mainWindow) mainWindow.webContents.send('update-available', {
+  safeSend('update-available', {
     latestVersion: info.version,
     changelog: info.releaseNotes || '',
   });
-  if (mainWindow) mainWindow.webContents.send('status-update', { msg: 'Nova versão encontrada, baixando...', type: 'info' });
+  safeSend('status-update', { msg: 'Nova versão encontrada, baixando...', type: 'info' });
 });
 autoUpdater.on('update-not-available', info => {
-  if (mainWindow) mainWindow.webContents.send('status-update', { msg: 'Nenhuma atualização encontrada.', type: 'info' });
+  safeSend('status-update', { msg: 'Nenhuma atualização encontrada.', type: 'info' });
 });
 autoUpdater.on('download-progress', progressObj => {
-  if (mainWindow) mainWindow.webContents.send('download-progress', progressObj.percent);
+  safeSend('download-progress', progressObj.percent);
 });
 autoUpdater.on('update-downloaded', info => {
-  if (mainWindow) mainWindow.webContents.send('status-update', { msg: 'Atualização baixada! Reinicie o app para atualizar.', type: 'success' });
-  if (mainWindow) mainWindow.webContents.send('update-downloaded');
+  safeSend('status-update', { msg: 'Atualização baixada! Reinicie o app para atualizar.', type: 'success' });
+  safeSend('update-downloaded');
 });
 
 // Força update (botão manual)
@@ -94,11 +102,9 @@ ipcMain.on('check-update', () => {
   autoUpdater.checkForUpdates();
 });
 ipcMain.on('restart-app', () => {
-  autoUpdater.quitAndInstall();
+  // Pequeno delay para garantir que tudo finalize antes de atualizar
+  setTimeout(() => autoUpdater.quitAndInstall(), 500);
 });
-
-ipcMain.on('window-minimize', () => mainWindow.minimize());
-ipcMain.on('window-close', () => mainWindow.close());
 
 // ============ Funções principais do app ============
 
@@ -112,9 +118,9 @@ ipcMain.on('add-app', async (_event, data) => {
   const win = mainWindow;
   const appId = String(data.appId || '').trim();
   const branch = "public";
-  win.webContents.send('status-update', { msg: `Baixando manifest do AppID ${appId}...`, type: 'info' });
+  safeSend('status-update', { msg: `Baixando manifest do AppID ${appId}...`, type: 'info' });
   if (!appId) {
-    win.webContents.send('status-update', { msg: 'Por favor, insira um App ID válido.', type: 'error' });
+    safeSend('status-update', { msg: 'Por favor, insira um App ID válido.', type: 'error' });
     return;
   }
   try {
@@ -132,7 +138,7 @@ ipcMain.on('add-app', async (_event, data) => {
           res.on('data', chunk => { errorMsg += chunk; });
           res.on('end', () => {
             if (!errorMsg) errorMsg = `Status: ${res.statusCode}`;
-            win.webContents.send('status-update', { msg: errorMsg.trim(), type: 'error' });
+            safeSend('status-update', { msg: errorMsg.trim(), type: 'error' });
             reject(new Error(errorMsg.trim()));
           });
           return;
@@ -142,29 +148,29 @@ ipcMain.on('add-app', async (_event, data) => {
           received += chunk.length;
           if (total > 0) {
             let percent = Math.round((received / total) * 100);
-            win.webContents.send('download-progress', percent);
+            safeSend('download-progress', percent);
           }
         });
         res.pipe(file);
         file.once('finish', () => file.close(resolve));
       }).on('error', err => {
-        win.webContents.send('status-update', { msg: `Erro de conexão: ${err.message}`, type: 'error' });
+        safeSend('status-update', { msg: `Erro de conexão: ${err.message}`, type: 'error' });
         reject(err);
       });
     });
 
-    win.webContents.send('download-progress', 100);
-    win.webContents.send('status-update', { msg: 'Download finalizado. Extraindo arquivos...', type: 'info' });
+    safeSend('download-progress', 100);
+    safeSend('status-update', { msg: 'Download finalizado. Extraindo arquivos...', type: 'info' });
 
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
     const zip = new AdmZip(tmpFile);
     zip.extractAllTo(destDir, true);
     fs.unlinkSync(tmpFile);
 
-    win.webContents.send('add-app-complete', { appId, destDir });
-    win.webContents.send('status-update', { msg: `Manifest do AppID ${appId} extraído em /manifests/${appId}`, type: 'success' });
+    safeSend('add-app-complete', { appId, destDir });
+    safeSend('status-update', { msg: `Manifest do AppID ${appId} extraído em /manifests/${appId}`, type: 'success' });
   } catch (err) {
-    win.webContents.send('status-update', { msg: `Erro: ${err.message}`, type: 'error' });
+    safeSend('status-update', { msg: `Erro: ${err.message}`, type: 'error' });
   }
 });
 
@@ -172,9 +178,9 @@ ipcMain.on('remove-app', (_event, appId) => {
   const destDir = path.join(manifestsDir, String(appId));
   if (fs.existsSync(destDir)) {
     fs.rmSync(destDir, { recursive: true, force: true });
-    mainWindow.webContents.send('status-update', { msg: `Arquivos do AppID ${appId} removidos.`, type: 'success' });
+    safeSend('status-update', { msg: `Arquivos do AppID ${appId} removidos.`, type: 'success' });
   } else {
-    mainWindow.webContents.send('status-update', { msg: `Nenhum arquivo encontrado para AppID ${appId}.`, type: 'error' });
+    safeSend('status-update', { msg: `Nenhum arquivo encontrado para AppID ${appId}.`, type: 'error' });
   }
 });
 
@@ -184,24 +190,24 @@ ipcMain.on('update-all', async () => {
     fs.statSync(path.join(manifestsDir, id)).isDirectory()
   );
   if (!appIds.length) {
-    mainWindow.webContents.send('status-update', { msg: 'Nenhum AppID baixado para atualizar.', type: 'info' });
+    safeSend('status-update', { msg: 'Nenhum AppID baixado para atualizar.', type: 'info' });
     return;
   }
-  mainWindow.webContents.send('status-update', { msg: `Atualizando todos os AppIDs (${appIds.length})...`, type: 'info' });
+  safeSend('status-update', { msg: `Atualizando todos os AppIDs (${appIds.length})...`, type: 'info' });
   for (let i = 0; i < appIds.length; ++i) {
     const appId = appIds[i];
-    mainWindow.webContents.send('status-update', { msg: `Atualizando AppID ${appId} (${i+1}/${appIds.length})...`, type: 'info' });
+    safeSend('status-update', { msg: `Atualizando AppID ${appId} (${i+1}/${appIds.length})...`, type: 'info' });
     await new Promise(res => setTimeout(res, 500));
     ipcMain.emit('add-app', null, { appId });
   }
-  mainWindow.webContents.send('status-update', { msg: 'Todos os AppIDs foram atualizados.', type: 'success' });
+  safeSend('status-update', { msg: 'Todos os AppIDs foram atualizados.', type: 'success' });
 });
 
 ipcMain.on('restart-steam', () => {
-  mainWindow.webContents.send('status-update', { msg: 'Reiniciando Steam...', type: 'info' });
-  const clear = () => mainWindow.webContents.send('status-update', { msg: '', type: 'info' });
+  safeSend('status-update', { msg: 'Reiniciando Steam...', type: 'info' });
+  const clear = () => safeSend('status-update', { msg: '', type: 'info' });
   const done = () => {
-    mainWindow.webContents.send('status-update', { msg: 'Steam reiniciada!', type: 'success' });
+    safeSend('status-update', { msg: 'Steam reiniciada!', type: 'success' });
     setTimeout(clear, 2500);
   };
   if (process.platform === 'win32') {

@@ -40,12 +40,8 @@ class Index {
         win: {
           icon: './icons/icon.ico',
           target: [
-            { target: 'portable', arch: ['x64', 'ia32'] },
             { target: 'nsis',     arch: ['x64', 'ia32'] }
           ]
-        },
-        portable: {
-          artifactName: '${name}-${os}-${arch}-portable.exe'
         },
         nsis: {
           artifactName: '${name}-${os}-${arch}.exe',
