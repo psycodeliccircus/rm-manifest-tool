@@ -1,3 +1,4 @@
+// main.js - RM Manifest Generator
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { exec } = require('child_process');
@@ -11,23 +12,24 @@ let mainWindow;
 let splashWindow;
 const manifestsDir = path.join(app.getPath('userData'), 'manifests');
 
-// Função segura para enviar mensagens para o renderer
+// Envia eventos com segurança
 function safeSend(channel, ...args) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, ...args);
   }
 }
 
+// Cria o diretório de manifests, se não existir
 function ensureManifestsDir() {
   if (!fs.existsSync(manifestsDir)) fs.mkdirSync(manifestsDir, { recursive: true });
 }
 
-function createSplash() {
+// Cria splash e mainWindow (main só aparece após timeout do splash)
+function createSplashAndMain() {
   splashWindow = new BrowserWindow({
     width: 650,
     height: 620,
     frame: false,
-    transparent: false,
     resizable: false,
     alwaysOnTop: true,
     center: true,
@@ -35,37 +37,34 @@ function createSplash() {
     icon: "icons/icon.png",
     webPreferences: { devTools: false }
   });
-
   splashWindow.loadFile('splash.html');
-}
 
-function createWindow() {
   mainWindow = new BrowserWindow({
     width: 600,
     height: 569,
     icon: "icons/icon.png",
+    show: false, // Só mostra depois do splash
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false
     }
   });
-
   mainWindow.loadFile('index.html');
   mainWindow.setMenu(null);
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+  // Exibe a janela principal após 2 segundos de splash
+  setTimeout(() => {
     if (splashWindow) splashWindow.close();
-  });
+    mainWindow.show();
+  }, 10000); // 2000ms = 2 segundos (ajuste como quiser)
 }
 
+// App: inicialização
 app.whenReady().then(() => {
   ensureManifestsDir();
-  createSplash();
-  createWindow();
+  createSplashAndMain();
 
-  // Checa update automaticamente ao abrir
   setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify();
   }, 1600);
@@ -75,7 +74,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// ============ AutoUpdate EVENTS ============
+// ================== AUTOUPDATE ===================
 autoUpdater.on('checking-for-update', () => {
   safeSend('status-update', { msg: 'Procurando atualização...', type: 'info' });
 });
@@ -97,25 +96,24 @@ autoUpdater.on('update-downloaded', info => {
   safeSend('update-downloaded');
 });
 
-// Força update (botão manual)
+// Update manual (botão)
 ipcMain.on('check-update', () => {
   autoUpdater.checkForUpdates();
 });
 ipcMain.on('restart-app', () => {
-  // Pequeno delay para garantir que tudo finalize antes de atualizar
   setTimeout(() => autoUpdater.quitAndInstall(), 500);
 });
 
-// ============ Funções principais do app ============
+// ================== APP FUNCIONALIDADES ===================
 
-// Abrir links externos no navegador padrão
+// Abrir links externos
 ipcMain.on('open-link', (event, url) => {
   shell.openExternal(url);
 });
 
+// Baixar e extrair manifest
 ipcMain.on('add-app', async (_event, data) => {
   ensureManifestsDir();
-  const win = mainWindow;
   const appId = String(data.appId || '').trim();
   const branch = "public";
   safeSend('status-update', { msg: `Baixando manifest do AppID ${appId}...`, type: 'info' });
@@ -174,6 +172,7 @@ ipcMain.on('add-app', async (_event, data) => {
   }
 });
 
+// Remover app
 ipcMain.on('remove-app', (_event, appId) => {
   const destDir = path.join(manifestsDir, String(appId));
   if (fs.existsSync(destDir)) {
@@ -184,6 +183,7 @@ ipcMain.on('remove-app', (_event, appId) => {
   }
 });
 
+// Atualizar todos os manifests
 ipcMain.on('update-all', async () => {
   ensureManifestsDir();
   const appIds = fs.readdirSync(manifestsDir).filter(id =>
@@ -203,6 +203,7 @@ ipcMain.on('update-all', async () => {
   safeSend('status-update', { msg: 'Todos os AppIDs foram atualizados.', type: 'success' });
 });
 
+// Reiniciar Steam
 ipcMain.on('restart-steam', () => {
   safeSend('status-update', { msg: 'Reiniciando Steam...', type: 'info' });
   const clear = () => safeSend('status-update', { msg: '', type: 'info' });

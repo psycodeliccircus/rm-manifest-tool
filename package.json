@@ -1,6 +1,6 @@
 {
   "name": "rm-manifest-tool",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Ferramenta de gerenciamento de manifests Steam",
   "author": "RenildoMarcio",
   "productName": "RM Manifest Generator",
