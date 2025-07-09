@@ -2,12 +2,13 @@
   "name": "rm-manifest-tool",
   "version": "1.0.0",
   "description": "Ferramenta de gerenciamento de manifests Steam",
-  "author": "Seu Nome",
+  "author": "RenildoMarcio",
+  "productName": "RM Manifest Generator",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "icon": "node build.js --icon=https://chevereto.renildomarcio.com.br/images/2025/07/08/4f448544fdf7fb513eb6c5e87de57cd4.png",
+    "build": "node build.js --build"
   },
   "devDependencies": {
     "electron": "^37.2.0",
@@ -15,46 +16,9 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
-    "electron-updater": "^6.6.2"
-  },
-  "build": {
-    "appId": "com.renildomarcio.rm-manifest",
-    "productName": "RM Manifest Generator",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "index.html",
-      "renderer.js",
-      "style.css",
-      "splash.html",
-      "splash.css",
-      "manifests/**/*",
-      "icons/**/*"
-    ],
-    "extraResources": [
-      "manifests"
-    ],
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "psycodeliccircus",
-        "repo": "rm-manifest-tool"
-      }
-    ],
-    "win": {
-      "icon": "icons/icon.png",
-      "target": [
-        "nsis"
-      ]
-    },
-    "linux": {
-      "icon": "icons/icon.png",
-      "target": [
-        "AppImage"
-      ]
-    }
+    "electron-updater": "^6.6.2",
+    "jimp": "^0.22.12",
+    "node-fetch": "^2.6.7",
+    "png2icons": "^2.0.0"
   }
 }
