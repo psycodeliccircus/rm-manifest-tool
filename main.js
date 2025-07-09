@@ -30,6 +30,7 @@ function createSplashAndMain() {
     width: 650,
     height: 620,
     frame: false,
+    transparent: true,
     resizable: false,
     alwaysOnTop: true,
     center: true,

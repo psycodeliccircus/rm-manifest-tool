@@ -6,13 +6,36 @@
   <link rel="stylesheet" href="splash.css">
 </head>
 <body>
-  <div class="splash-container">
-    <img src="icons/icon.png" alt="Logo" class="splash-logo fade-in">
-    <div class="splash-title fade-in">RM Manifest Generator</div>
-    <div class="splash-loader-outer fade-in">
-      <div class="splash-loader-bar"></div>
+  <div class="splash-bg"></div>
+  <div class="splash-center">
+    <div class="splash-panel">
+      <img src="icons/icon.png" alt="Logo" class="splash-logo" draggable="false">
+      <div class="splash-title">
+        <span>RM Manifest</span> <span class="gradient">Generator</span>
+      </div>
+      <div class="splash-slogan">
+        Sua central <span class="gradient-accent">Steam Manifests</span>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+      </div>
+
+      <div class="splash-msg">Carregando, aguarde...</div>
+      <div class="credit">by <span>Renildo Marcio</span></div>
     </div>
-    <div class="splash-sub fade-in">Carregando, aguarde...</div>
   </div>
+  <script>
+    // Simula uma barra de progresso suave
+    let p = 0, el = document.querySelector('.progress');
+    let interval = setInterval(() => {
+      if (!el) el = document.querySelector('.progress');
+      if (p < 94) {
+        p = Math.min(94, p + Math.random() * 4);
+        el.style.width = (p) + '%';
+      }
+    }, 80);
+  </script>
 </body>
 </html>
