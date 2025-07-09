@@ -36,10 +36,6 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 600,
     height: 569,
-    frame: false,
-    transparent: true,
-    resizable: false,
-    show: true,
     icon: "icons/icon.png",
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -59,7 +55,7 @@ app.whenReady().then(() => {
   setTimeout(() => {
     mainWindow.show();
     if (splashWindow) splashWindow.close();
-  }, 1200);
+  }, 1000);
 
   // Checa update automaticamente ao abrir
   setTimeout(() => {

@@ -88,24 +88,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.getElementById('min-btn').onclick = () => window.electronAPI.minimize && window.electronAPI.minimize();
-  document.getElementById('close-btn').onclick = () => window.electronAPI.close && window.electronAPI.close();
-
   function showChangelog({latestVersion, changelog}) {
+    // Esconde os botões principais
+    document.getElementById('main-buttons').style.opacity = '0.3';
+    document.getElementById('main-buttons').style.pointerEvents = 'none';
+
     changelogContent.innerHTML = `
-      <b>Versão:</b> v${latestVersion}<br><br>
-      <pre style="white-space: pre-wrap;font-family:inherit;">${changelog || "Sem changelog."}</pre>
+      <div style="margin-bottom:8px;">
+        <span style="font-weight:bold;color:var(--primary-color)">Versão:</span> <span style="font-weight:bold;">v${latestVersion}</span>
+      </div>
+      <div>${changelog ? changelog.replace(/\n/g, "<br>") : "Sem changelog desta vez!"}</div>
     `;
-    changelogModal.style.display = "block";
+    changelogModal.style.display = "flex";
+
+    // Foco acessível no botão close
+    setTimeout(()=>closeChangelog.focus(), 180);
+
     btnUpdateNow.onclick = () => {
       setStatus('Atualizando agora...', 'info', false);
       progressBar.value = 0;
       progressBar.style.display = '';
-      window.electronAPI.restartApp();
-      changelogModal.style.display = "none";
+      if (window.electronAPI && window.electronAPI.restartApp)
+        window.electronAPI.restartApp();
+      hideChangelog();
     };
-    closeChangelog.onclick = () => changelogModal.style.display = "none";
+
+    // Fecha ao clicar fora
+    document.querySelector('.modal-backdrop').onclick = hideChangelog;
+
+    // Fecha ao clicar X
+    closeChangelog.onclick = hideChangelog;
+
+    // Fecha ao pressionar Esc
+    document.onkeydown = function(e){
+      if(e.key === 'Escape') hideChangelog();
+    };
+
+    function hideChangelog(){
+      changelogModal.style.display = "none";
+      document.getElementById('main-buttons').style.opacity = '';
+      document.getElementById('main-buttons').style.pointerEvents = '';
+      document.onkeydown = null;
+    }
   }
+
+  // TESTE do botão
+  document.getElementById('btn-teste-changelog').onclick = function() {
+    showChangelog({
+      latestVersion: '1.9.7',
+      changelog: `
+  • Novo sistema de changelog-modal 🔥
+  • Design melhorado e animações
+  • Esconde os botões ao exibir changelog
+  • Scroll para changelog longo
+  • Fecha no ESC ou clique fora
+  • Botão "Atualizar Agora" estilizado
+  • Acessibilidade melhorada
+  • Teste livre, pode clicar aqui sempre!
+  `
+    });
+  };
 
   if (window.electronAPI) {
     window.electronAPI.onStatusUpdate(data => {
