@@ -24,6 +24,7 @@ class Index {
           "preload.js",
           "index.html",
           "renderer.js",
+          "i18n.js",
           "style.css",
           "splash.html",
           "splash.css",
