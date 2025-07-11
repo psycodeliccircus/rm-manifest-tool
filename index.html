@@ -9,41 +9,49 @@
 </head>
 <body>
   <header class="header">
-    <div class="brand">RM Manifests</div>
+    <div class="brand" data-i18n="brand">RM Manifests</div>
     <nav class="nav-auth">
-      <a href="#" class="header-button generator-button" data-url="https://generator.renildomarcio.com.br"><i class="fas fa-code"></i>Home</a>
+      <a href="#" class="header-button generator-button" data-url="https://generator.renildomarcio.com.br">
+        <i class="fas fa-code"></i> <span data-i18n="home">Home</span>
+      </a>
       <a href="#" id="btn-github-update" class="nav-link">
         <i class="fas fa-cloud-download-alt"></i>
       </a>
+      <select id="lang-selector">
+        <option value="pt-BR">🇧🇷 Português</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="es">🇪🇸 Español</option>
+      </select>
     </nav>
   </header>
 
   <main class="main-content">
     <section class="container">
       <div class="input-wrapper">
-        <input id="appid" type="text" placeholder="App ID ou nome..." autocomplete="off">
+        <input id="appid" type="text" data-i18n-placeholder="input_placeholder" autocomplete="off">
       </div>
       <progress id="progressBar" value="0" max="100" style="width:100%;height:12px;display:none;margin:8px 0"></progress>
-      <div id="status" class="status" style="display:none;">Ready</div>
+      <div id="status" class="status" style="display:none;" data-i18n="status_ready">Ready</div>
       <br>
       <div class="button-group" id="main-buttons">
-        <button id="btn-download"><i class="fas fa-download"></i> Download Manifest</button>
-        <button id="btn-remove"><i class="fas fa-trash"></i> Remover</button>
-        <button id="btn-update"><i class="fas fa-sync"></i> Atualizar Todos</button>
-        <button id="btn-restart"><i class="fab fa-steam"></i> Reiniciar Steam</button>
+        <button id="btn-download"><i class="fas fa-download"></i> <span data-i18n="download">Download Manifest</span></button>
+        <button id="btn-remove"><i class="fas fa-trash"></i> <span data-i18n="remove">Remover</span></button>
+        <button id="btn-update"><i class="fas fa-sync"></i> <span data-i18n="update_all">Atualizar Todos</span></button>
+        <button id="btn-restart"><i class="fab fa-steam"></i> <span data-i18n="restart_steam">Reiniciar Steam</span></button>
       </div>
       <!-- MODAL -->
       <div id="changelog-modal" class="modal" style="display:none;">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
           <span id="close-changelog" class="close-btn" tabindex="0" title="Fechar">&times;</span>
-          <h2 class="modal-title"><i class="fas fa-history"></i> Novidades da nova versão</h2>
+          <h2 class="modal-title"><i class="fas fa-history"></i> <span data-i18n="modal_title">Novidades da nova versão</span></h2>
           <div id="changelog-content" class="changelog-body"></div>
-          <button id="btn-update-now" class="btn btn-update-now"><i class="fas fa-download"></i> Atualizar Agora</button>
+          <button id="btn-update-now" class="btn btn-update-now"><i class="fas fa-download"></i> <span data-i18n="update_now">Atualizar Agora</span></button>
         </div>
       </div>
     </section>
   </main>
+  <script src="i18n.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
   btnDownload.onclick = () => {
     const appId = appidInput.value.trim();
     if (!appId) {
-      setStatus('Por favor, insira um App ID válido.', 'error');
+      setStatus(t('please_enter_appid'), 'error');
       return;
     }
-    setStatus(`Baixando manifest para AppID ${appId}...`, 'info');
+    setStatus(t('downloading', { appId }), 'info');
     progressBar.value = 0;
     progressBar.style.display = '';
     if (window.electronAPI && window.electronAPI.addApp) {
@@ -53,33 +53,32 @@ document.addEventListener('DOMContentLoaded', () => {
   btnRemove.onclick = () => {
     const appId = appidInput.value.trim();
     if (!appId) {
-      setStatus('Por favor, insira um App ID válido.', 'error');
+      setStatus(t('please_enter_appid'), 'error');
       return;
     }
-    setStatus(`Removendo arquivos de AppID ${appId}...`, 'info');
+    setStatus(t('removing', { appId }), 'info');
     progressBar.style.display = 'none';
     window.electronAPI.removeApp(appId);
   };
 
   btnUpdate.onclick = () => {
-    setStatus('Atualizando todos os AppIDs...', 'info');
+    setStatus(t('updating_all'), 'info');
     progressBar.style.display = 'none';
     window.electronAPI.updateAll();
   };
 
   btnRestart.onclick = () => {
-    setStatus('Reiniciando Steam...', 'info');
+    setStatus(t('restarting_steam'), 'info');
     progressBar.style.display = 'none';
     window.electronAPI.restartSteam();
   };
 
   btnGithubUpdate.onclick = () => {
-    setStatus('Verificando atualização no GitHub...', 'info');
+    setStatus(t('checking_update'), 'info');
     progressBar.style.display = '';
     window.electronAPI.checkUpdate();
   };
 
-  // Links externos (navegação)
   document.querySelectorAll('[data-url]').forEach(link => {
     link.addEventListener('click', evt => {
       evt.preventDefault();
@@ -89,23 +88,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function showChangelog({latestVersion, changelog}) {
-    // Esconde os botões principais
     mainButtons.style.opacity = '0.3';
     mainButtons.style.pointerEvents = 'none';
 
     changelogContent.innerHTML = `
       <div style="margin-bottom:8px;">
-        <span style="font-weight:bold;color:var(--primary-color)">Versão:</span> <span style="font-weight:bold;">v${latestVersion}</span>
+        <span style="font-weight:bold;color:var(--primary-color)">${t('version')}</span> <span style="font-weight:bold;">v${latestVersion}</span>
       </div>
       <div style="max-height:220px;overflow-y:auto;padding:2px 0 2px 4px;font-size:15px;line-height:1.6;">
-        ${changelog ? changelog.replace(/\n/g, "<br>") : "Sem changelog desta vez!"}
+        ${changelog ? changelog.replace(/\n/g, "<br>") : t('no_changelog')}
       </div>
     `;
     changelogModal.style.display = "flex";
     setTimeout(() => closeChangelog.focus(), 180);
 
     btnUpdateNow.onclick = () => {
-      setStatus('Atualizando agora...', 'info', false);
+      setStatus(t('updating_now'), 'info', false);
       progressBar.value = 0;
       progressBar.style.display = '';
       if (window.electronAPI && window.electronAPI.restartApp)
@@ -119,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.key === "Enter" || e.key === " " || e.key === "Escape") hideChangelog();
     };
 
-    // Fecha ao pressionar Esc
     document.onkeydown = function(e){
       if(e.key === 'Escape') hideChangelog();
     };
@@ -132,11 +129,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // SÓ aparece quando há atualização detectada
+  // ---- ATUALIZAÇÃO: agora trata msgKey e msg! ----
   if (window.electronAPI) {
     window.electronAPI.onStatusUpdate(data => {
-      setStatus(data.msg, data.type || 'info');
-      if (!data.msg) {
+      if (data.msgKey) {
+        setStatus(t(data.msgKey, data.vars), data.type || 'info', data.autoClear !== false);
+      } else if (data.msg) {
+        setStatus(data.msg, data.type || 'info', data.autoClear !== false);
+      }
+      if ((!data.msg && !data.msgKey) || data.type === 'success' || data.type === 'error') {
         progressBar.style.display = 'none';
       }
     });
@@ -149,14 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 700);
     });
     window.electronAPI.onAddAppComplete(data => {
-      setStatus(`Manifest extraído em /manifests/${data.appId}`, 'success');
+      setStatus(t('extracted', { appId: data.appId }), 'success');
     });
-    // <-- Aqui o modal é mostrado automaticamente!
     window.electronAPI.onUpdateAvailable(data => {
       showChangelog(data);
     });
     window.electronAPI.onUpdateDownloaded(() => {
-      setStatus('Atualização baixada! O app será reiniciado.', 'success', false);
+      setStatus(t('update_downloaded'), 'success', false);
       setTimeout(() => window.electronAPI.restartApp(), 1500);
     });
   }

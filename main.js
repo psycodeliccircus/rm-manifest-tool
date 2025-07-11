@@ -4,6 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const fse = require('fs-extra');
 const os = require('os');
 const https = require('https');
 const AdmZip = require('adm-zip');
@@ -11,6 +12,67 @@ const AdmZip = require('adm-zip');
 let mainWindow;
 let splashWindow;
 const manifestsDir = path.join(app.getPath('userData'), 'manifests');
+
+const REGISTRY_PATH = 'HKCU\\Software\\Valve\\Steam';
+
+// Função para localizar a pasta da Steam (Windows)
+function getSteamPath() {
+  return new Promise((resolve) => {
+    if (process.platform !== 'win32') return resolve(null);
+
+    // Tenta pelo registro do Windows
+    exec(`reg query "${REGISTRY_PATH}" /v SteamPath`, (err, stdout) => {
+      if (!err && stdout) {
+        const match = stdout.match(/SteamPath\s+REG_SZ\s+([^\r\n]+)/);
+        if (match && match[1]) {
+          return resolve(match[1].trim().replace(/\\/g, '/'));
+        }
+      }
+      // Se não achar no registro, tenta nos caminhos comuns
+      const candidates = [
+        'C:/Program Files (x86)/Steam',
+        'C:/Program Files/Steam'
+      ];
+      for (const dir of candidates) {
+        if (fs.existsSync(dir)) return resolve(dir);
+      }
+      // Não achou
+      resolve(null);
+    });
+  });
+}
+
+// Função para copiar arquivos extraídos para as pastas certas da Steam
+async function copyExtractedFiles(appId, sourceDir) {
+  const steamPath = await getSteamPath();
+  if (!steamPath) {
+    safeSend('status-update', { msg: 'Não foi possível localizar a pasta da Steam.', type: 'error' });
+    return;
+  }
+  // Destinos
+  const stpluginDir = path.join(steamPath, 'config', 'stplug-in');
+  const depotcacheDir = path.join(steamPath, 'config', 'depotcache');
+
+  // Cria os diretórios se não existirem
+  fse.ensureDirSync(stpluginDir);
+  fse.ensureDirSync(depotcacheDir);
+
+  // Copia arquivos .lua, .st e .manifest
+  const files = fs.readdirSync(sourceDir);
+  for (const file of files) {
+    const ext = path.extname(file).toLowerCase();
+    const src = path.join(sourceDir, file);
+
+    if (ext === '.lua' || ext === '.st') {
+      const dest = path.join(stpluginDir, file);
+      await fse.copy(src, dest, { overwrite: true });
+    }
+    if (ext === '.manifest') {
+      const dest = path.join(depotcacheDir, file);
+      await fse.copy(src, dest, { overwrite: true });
+    }
+  }
+}
 
 // Envia eventos com segurança
 function safeSend(channel, ...args) {
@@ -54,11 +116,11 @@ function createSplashAndMain() {
   mainWindow.loadFile('index.html');
   mainWindow.setMenu(null);
 
-  // Exibe a janela principal após 2 segundos de splash
+  // Exibe a janela principal após splash
   setTimeout(() => {
     if (splashWindow) splashWindow.close();
     mainWindow.show();
-  }, 10000); // 2000ms = 2 segundos (ajuste como quiser)
+  }, 10000); // 10000ms = 10 segundos (ajuste como quiser)
 }
 
 // App: inicialização
@@ -77,23 +139,23 @@ app.on('window-all-closed', () => {
 
 // ================== AUTOUPDATE ===================
 autoUpdater.on('checking-for-update', () => {
-  safeSend('status-update', { msg: 'Procurando atualização...', type: 'info' });
+  safeSend('status-update', { msgKey: 'checking_update', type: 'info' });
 });
 autoUpdater.on('update-available', info => {
   safeSend('update-available', {
     latestVersion: info.version,
     changelog: info.releaseNotes || '',
   });
-  safeSend('status-update', { msg: 'Nova versão encontrada, baixando...', type: 'info' });
+  safeSend('status-update', { msgKey: 'new_version_found', type: 'info' });
 });
 autoUpdater.on('update-not-available', info => {
-  safeSend('status-update', { msg: 'Nenhuma atualização encontrada.', type: 'info' });
+  safeSend('status-update', { msgKey: 'no_update_found', type: 'info' });
 });
 autoUpdater.on('download-progress', progressObj => {
   safeSend('download-progress', progressObj.percent);
 });
 autoUpdater.on('update-downloaded', info => {
-  safeSend('status-update', { msg: 'Atualização baixada! Reinicie o app para atualizar.', type: 'success' });
+  safeSend('status-update', { msgKey: 'update_downloaded', type: 'success' });
   safeSend('update-downloaded');
 });
 
@@ -112,16 +174,16 @@ ipcMain.on('open-link', (event, url) => {
   shell.openExternal(url);
 });
 
-// Baixar e extrair manifest
+// Baixar e extrair manifest + copiar arquivos para a Steam
 ipcMain.on('add-app', async (_event, data) => {
   ensureManifestsDir();
   const appId = String(data.appId || '').trim();
   const branch = "public";
-  safeSend('status-update', { msg: `Baixando manifest do AppID ${appId}...`, type: 'info' });
   if (!appId) {
-    safeSend('status-update', { msg: 'Por favor, insira um App ID válido.', type: 'error' });
+    safeSend('status-update', { msgKey: 'please_enter_appid', type: 'error' });
     return;
   }
+  safeSend('status-update', { msgKey: 'downloading', type: 'info', vars: { appId } });
   try {
     const url = `https://generator.renildomarcio.com.br/download.php?appid=${appId}&branch=${branch}`;
     const tmpFile = path.join(os.tmpdir(), `rm_${appId}.zip`);
@@ -159,15 +221,25 @@ ipcMain.on('add-app', async (_event, data) => {
     });
 
     safeSend('download-progress', 100);
-    safeSend('status-update', { msg: 'Download finalizado. Extraindo arquivos...', type: 'info' });
+
+    // Mensagem: download finalizado
+    safeSend('status-update', { msgKey: 'download_finished', type: 'success', vars: { appId } });
+
+    // Mensagem: extraindo arquivos
+    safeSend('status-update', { msgKey: 'extracting', type: 'info' });
 
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
     const zip = new AdmZip(tmpFile);
     zip.extractAllTo(destDir, true);
     fs.unlinkSync(tmpFile);
 
+    // Copia os arquivos extraídos para as pastas corretas da Steam!
+    await copyExtractedFiles(appId, destDir);
+
+    // Mensagem final: peça para reiniciar a Steam
+    safeSend('status-update', { msgKey: 'please_restart_steam', type: 'success' });
+
     safeSend('add-app-complete', { appId, destDir });
-    safeSend('status-update', { msg: `Manifest do AppID ${appId} extraído em /manifests/${appId}`, type: 'success' });
   } catch (err) {
     safeSend('status-update', { msg: `Erro: ${err.message}`, type: 'error' });
   }
@@ -178,9 +250,9 @@ ipcMain.on('remove-app', (_event, appId) => {
   const destDir = path.join(manifestsDir, String(appId));
   if (fs.existsSync(destDir)) {
     fs.rmSync(destDir, { recursive: true, force: true });
-    safeSend('status-update', { msg: `Arquivos do AppID ${appId} removidos.`, type: 'success' });
+    safeSend('status-update', { msgKey: 'removed', type: 'success', vars: { appId } });
   } else {
-    safeSend('status-update', { msg: `Nenhum arquivo encontrado para AppID ${appId}.`, type: 'error' });
+    safeSend('status-update', { msgKey: 'not_found', type: 'error', vars: { appId } });
   }
 });
 
@@ -191,25 +263,25 @@ ipcMain.on('update-all', async () => {
     fs.statSync(path.join(manifestsDir, id)).isDirectory()
   );
   if (!appIds.length) {
-    safeSend('status-update', { msg: 'Nenhum AppID baixado para atualizar.', type: 'info' });
+    safeSend('status-update', { msgKey: 'no_appids_to_update', type: 'info' });
     return;
   }
-  safeSend('status-update', { msg: `Atualizando todos os AppIDs (${appIds.length})...`, type: 'info' });
+  safeSend('status-update', { msgKey: 'updating_all', type: 'info', vars: { total: appIds.length } });
   for (let i = 0; i < appIds.length; ++i) {
     const appId = appIds[i];
-    safeSend('status-update', { msg: `Atualizando AppID ${appId} (${i+1}/${appIds.length})...`, type: 'info' });
+    safeSend('status-update', { msgKey: 'updating_appid', type: 'info', vars: { appId, index: i+1, total: appIds.length } });
     await new Promise(res => setTimeout(res, 500));
     ipcMain.emit('add-app', null, { appId });
   }
-  safeSend('status-update', { msg: 'Todos os AppIDs foram atualizados.', type: 'success' });
+  safeSend('status-update', { msgKey: 'all_updated', type: 'success' });
 });
 
 // Reiniciar Steam
 ipcMain.on('restart-steam', () => {
-  safeSend('status-update', { msg: 'Reiniciando Steam...', type: 'info' });
+  safeSend('status-update', { msgKey: 'restarting_steam', type: 'info' });
   const clear = () => safeSend('status-update', { msg: '', type: 'info' });
   const done = () => {
-    safeSend('status-update', { msg: 'Steam reiniciada!', type: 'success' });
+    safeSend('status-update', { msgKey: 'steam_restarted', type: 'success' });
     setTimeout(clear, 2500);
   };
   if (process.platform === 'win32') {
